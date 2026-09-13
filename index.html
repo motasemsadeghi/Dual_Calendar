@@ -51,13 +51,48 @@
     width: 100%;
     max-width: 440px;
   }
+  .app.layout-row {
+    max-width: 780px;
+  }
 
   .calendars {
-    display: block;
+    display: flex;
+    flex-direction: column;
+  }
+  .calendars.layout-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .calendars.layout-row > .panel {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .calendars > .panel {
     width: 100%;
+  }
+
+  .layout-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .layout-toggle button {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid rgba(138,109,59,0.4);
+    color: var(--ink-dim);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 12.5px;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .layout-toggle button:first-child { border-radius: 999px 0 0 999px; border-right: none; }
+  .layout-toggle button:last-child { border-radius: 0 999px 999px 0; }
+  .layout-toggle button.active {
+    background: rgba(212,175,55,0.14);
+    color: var(--brass-bright);
   }
 
   .logo-row {
@@ -80,6 +115,7 @@
     line-height: 1.7;
     color: var(--ink);
   }
+  .masthead-line + .masthead-line { margin-top: 2px; }
   .masthead .fa { font-family: 'Vazirmatn', sans-serif; }
   .masthead .en { font-family: 'Inter', system-ui, sans-serif; }
   .masthead .mnum, .masthead .tr {
@@ -87,11 +123,6 @@
     font-size: 0.9em;
   }
   .masthead .tr { font-style: italic; }
-  .masthead .eq {
-    color: var(--brass-bright);
-    font-weight: 600;
-    padding: 0 8px;
-  }
 
   .panel {
     position: relative;
@@ -254,6 +285,18 @@
   }
   .divider svg { flex: none; }
 
+  .calendars.layout-row .divider {
+    flex-direction: column;
+    width: 34px;
+    align-self: stretch;
+    margin: 0 4px;
+  }
+  .calendars.layout-row .divider .line {
+    width: 1px;
+    height: auto;
+    background: repeating-linear-gradient(180deg, rgba(138,109,59,0.6) 0 4px, transparent 4px 9px);
+  }
+
   .fade-slide {
     animation: fadeSlide 0.22s ease;
   }
@@ -288,9 +331,14 @@
   <div class="logo-row">
     <img src="icons/logo-inline.png" alt="Motasem Sadeghi" class="logo-img">
   </div>
-  <p class="masthead" id="mastheadLine" dir="ltr"></p>
+  <div class="masthead" id="mastheadLine"></div>
 
-  <div class="calendars">
+  <div class="layout-toggle">
+    <button id="layoutSide" type="button">کنار هم</button>
+    <button id="layoutStack" type="button" class="active">زیر هم</button>
+  </div>
+
+  <div class="calendars" id="calendarsWrap">
 
   <!-- Gregorian panel -->
   <div class="panel" dir="ltr" id="gregPanel">
@@ -548,8 +596,27 @@ function renderMasthead() {
       todayG.y +
     '</span>';
 
-  document.getElementById('mastheadLine').innerHTML = enLine + ' <span class="eq">=</span> ' + faLine;
+  document.getElementById('mastheadLine').innerHTML =
+    '<div class="masthead-line">' + faLine + '</div>' +
+    '<div class="masthead-line">' + enLine + '</div>';
 }
+
+/* ---------- Layout toggle (side-by-side vs stacked) ---------- */
+var appEl = document.querySelector('.app');
+var calendarsEl = document.getElementById('calendarsWrap');
+var layoutSideBtn = document.getElementById('layoutSide');
+var layoutStackBtn = document.getElementById('layoutStack');
+
+function setLayout(mode) {
+  var isRow = mode === 'row';
+  appEl.classList.toggle('layout-row', isRow);
+  calendarsEl.classList.toggle('layout-row', isRow);
+  layoutSideBtn.classList.toggle('active', isRow);
+  layoutStackBtn.classList.toggle('active', !isRow);
+}
+
+layoutSideBtn.addEventListener('click', function () { setLayout('row'); });
+layoutStackBtn.addEventListener('click', function () { setLayout('column'); });
 
 renderMasthead();
 renderGreg();
