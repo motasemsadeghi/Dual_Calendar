@@ -23,6 +23,7 @@
     --ink-dim: #9298a8;
     --ink-faint: #5b6070;
     --accent-cool: #6f95ab;
+    --tr-holiday: #c1666b;
     --today-text: #1a1206;
     --radius: 3px;
   }
@@ -237,6 +238,7 @@
 
   .day-cell.empty { visibility: hidden; }
   .day-cell.weekend:not(.today) { color: var(--accent-cool); }
+  .day-cell.tr-holiday:not(.today) .num { color: var(--tr-holiday); font-weight: 600; }
 
   .day-cell .num {
     position: relative;
@@ -475,6 +477,31 @@ var persView = { jy: todayJ.jy, jm: todayJ.jm };
 var GREG_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 var GREG_MONTHS_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 var GREG_WD = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+/* Turkish public holidays: fixed national days (month is 1-based here) */
+var TR_HOLIDAYS_FIXED = [
+  [1,1], [4,23], [5,1], [5,19], [7,15], [8,30], [10,28], [10,29]
+];
+/* Religious holidays (Ramazan & Kurban Bayramı incl. arefe), per Diyanet-announced dates */
+var TR_HOLIDAYS_RELIGIOUS = {
+  2024: [[4,9],[4,10],[4,11],[4,12], [6,15],[6,16],[6,17],[6,18],[6,19]],
+  2025: [[3,29],[3,30],[3,31],[4,1], [6,5],[6,6],[6,7],[6,8],[6,9]],
+  2026: [[3,19],[3,20],[3,21],[3,22], [5,26],[5,27],[5,28],[5,29],[5,30]],
+  2027: [[3,8],[3,9],[3,10],[3,11], [5,15],[5,16],[5,17],[5,18],[5,19]],
+  2028: [[2,25],[2,26],[2,27],[2,28], [5,4],[5,5],[5,6],[5,7],[5,8]]
+};
+function isTrHoliday(y, m1, d) { // m1 is 1-based month
+  for (var i = 0; i < TR_HOLIDAYS_FIXED.length; i++) {
+    if (TR_HOLIDAYS_FIXED[i][0] === m1 && TR_HOLIDAYS_FIXED[i][1] === d) return true;
+  }
+  var rel = TR_HOLIDAYS_RELIGIOUS[y];
+  if (rel) {
+    for (var j = 0; j < rel.length; j++) {
+      if (rel[j][0] === m1 && rel[j][1] === d) return true;
+    }
+  }
+  return false;
+}
 var PERS_MONTHS = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 var PERS_WD = ['ش','ی','د','س','چ','پ','ج'];
 
@@ -499,7 +526,8 @@ function renderGreg() {
   for (var d = 1; d <= daysInMonth; d++) {
     var dow = (firstDow + d - 1) % 7;
     var isToday = (y === todayG.y && m === todayG.m && d === todayG.d);
-    var cls = 'day-cell' + ((dow === 5 || dow === 6) ? ' weekend' : '') + (isToday ? ' today' : '');
+    var isHoliday = isTrHoliday(y, m + 1, d);
+    var cls = 'day-cell' + ((dow === 5 || dow === 6) ? ' weekend' : '') + (isHoliday ? ' tr-holiday' : '') + (isToday ? ' today' : '');
     cells.push('<div class="' + cls + '"><span class="num">' + d + '</span></div>');
   }
   var grid = document.getElementById('gregGrid');
